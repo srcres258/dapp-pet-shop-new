@@ -12,21 +12,33 @@ import {ProposalFactory} from "./ProposalFactory.sol";
  * @notice ERC-721 代币 CustomPet. 该代币的铸造与销毁由委员会管理.
  */
 contract CustomPet is ERC721URIStorage, ERC721Enumerable {
-    ProposalFactory public proposalFactory;
+    ProposalFactory public proposalFactory = ProposalFactory(address(0));
     uint256 private _tokenIdCounter;
 
-    constructor(ProposalFactory _proposalFactory) ERC721("CustomPet", "CP") {
+    constructor() ERC721("CustomPet", "CP") {}
+
+    modifier requiresProposalFactorySet() {
+        _requiresProposalFactorySet();
+        _;
+    }
+
+    function _requiresProposalFactorySet() private view {
+        require(address(proposalFactory) != address(0), "ProposalFactory has not been set yet.");
+    }
+
+    /// @notice 设置 ProposalFactory 地址.
+    function setProposalFactory(ProposalFactory _proposalFactory) external {
         proposalFactory = _proposalFactory;
     }
 
     /// @notice 发起提案, 使用 URI 铸造新的 Token.
-    function proposeMint(address to, string memory uri) external {
+    function proposeMint(address to, string memory uri) external requiresProposalFactorySet {
         // Only committee members, checked in factory.
         proposalFactory.createMintCPProposal(to, uri);
     }
 
     /// @notice 真正的 Token 铸造逻辑. 提案通过后自动调用.
-    function mint(address to, string memory uri) external {
+    function mint(address to, string memory uri) external requiresProposalFactorySet {
         require(msg.sender == address(proposalFactory), "Unauthorized.");
         uint256 tokenId = _tokenIdCounter++;
         _safeMint(to, tokenId);
@@ -34,13 +46,13 @@ contract CustomPet is ERC721URIStorage, ERC721Enumerable {
     }
 
     /// @notice 发起提案, 销毁指定的 Token.
-    function proposeBurn(uint256 tokenId) external {
+    function proposeBurn(uint256 tokenId) external requiresProposalFactorySet {
         // Only committee members, checked in factory.
         proposalFactory.createBurnCPProposal(tokenId);
     }
 
     /// @notice 真正的 Token 销毁逻辑. 提案通过后自动调用.
-    function burn(uint256 tokenId) external {
+    function burn(uint256 tokenId) external requiresProposalFactorySet {
         require(msg.sender == address(proposalFactory), "Unauthorized.");
         _burn(tokenId);
     }
@@ -61,27 +73,7 @@ contract CustomPet is ERC721URIStorage, ERC721Enumerable {
         return super.supportsInterface(interfaceId);
     }
 
-    // function _beforeTokenTransfer(
-    //     address from,
-    //     address to,
-    //     address firstTokenId,
-    //     uint256 batchSize
-    // ) internal virtual override(ERC721, ERC721Enumerable) {
-    //     super._beforeTokenTransfer(from, to, firstTokenId, batchSize);
-    // }
-
-    // function _burn(uint256 tokenId) internal virtual override(ERC721) {
-    //     super._burn(tokenId);
-    // }
-
-    // function mint(address to, string memory tokenURI) external {
-    //     require(msg.sender == address(proposalFactory), "Unauthorized");
-    //     uint256 tokenId = _tokenIdCounter++;
-    //     _safeMint(to, tokenId);
-    //     _setTokenURI(tokenId, tokenURI);
-    // }
-
-    function destroy(uint256 tokenId) external {
+    function destroy(uint256 tokenId) external requiresProposalFactorySet {
         require(msg.sender == address(proposalFactory), "Unauthorized");
         _burn(tokenId);
     }

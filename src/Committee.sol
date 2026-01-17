@@ -10,7 +10,7 @@ import {CommitteeTreasury} from "./CommitteeTreasury.sol";
  * 成员可随时增加或者减少质押量. 若质押量减少为 0, 则退出委员会.
  */
 contract Committee {
-    CommitteeTreasury public treasury;
+    CommitteeTreasury public treasury = CommitteeTreasury(address(0));
 
     mapping(address => uint256) public stakes;
     address[] public members;
@@ -20,12 +20,22 @@ contract Committee {
     event RemovedStake(address indexed member, uint256 amount);
     event LeftCommittee(address indexed member);
 
-    constructor(CommitteeTreasury _treasury) {
+    modifier requiresTreasurySet() {
+        _requiresTreasurySet();
+        _;
+    }
+
+    function _requiresTreasurySet() private view {
+        require(address(treasury) != address(0), "CommitteeTreasury has not been set yet.");
+    }
+    
+    /// @notice Set the treasury for the committee.
+    function setTreasury(CommitteeTreasury _treasury) external {
         treasury = _treasury;
     }
 
     /// @notice 质押 ETH 以加入委员会.
-    function join() external payable {
+    function join() external payable requiresTreasurySet {
         require(msg.value > 0, "Must stake some ETH to join the committee.");
         require(stakes[msg.sender] == 0, "Already a committee member.");
         stakes[msg.sender] = msg.value;
@@ -35,7 +45,7 @@ contract Committee {
     }
 
     /// @notice 增加质押量.
-    function addStake() external payable {
+    function addStake() external payable requiresTreasurySet {
         require(msg.value > 0, "Must stake some ETH to add stake.");
         require(stakes[msg.sender] > 0, "Not a committee member.");
         stakes[msg.sender] += msg.value;
@@ -44,7 +54,7 @@ contract Committee {
     }
 
     /// @notice 减少质押量 (部分或者全部).
-    function removeStake(uint256 amount) external {
+    function removeStake(uint256 amount) external requiresTreasurySet {
         require(stakes[msg.sender] >= amount, "Insufficient stake to remove.");
         stakes[msg.sender] -= amount;
         treasury.sendETH(msg.sender, amount); // Treasury sends ETH back
