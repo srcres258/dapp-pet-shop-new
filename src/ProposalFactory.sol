@@ -6,6 +6,7 @@ import {Committee} from "./Committee.sol";
 import {Exchange} from "./Exchange.sol";
 import {CustomPet} from "./CustomPet.sol";
 import {CommitteeTreasury} from "./CommitteeTreasury.sol";
+
 /**
  * @title ProposalFactory 提案工厂
  * @author srcres258
@@ -25,12 +26,7 @@ contract ProposalFactory {
 
     event ProposalCreated(address indexed proposalAddress, string proposalType);
 
-    constructor(
-        Committee _committee,
-        Exchange _exchange,
-        CustomPet _cp,
-        CommitteeTreasury _treasury
-    ) {
+    constructor(Committee _committee, Exchange _exchange, CustomPet _cp, CommitteeTreasury _treasury) {
         committee = _committee;
         exchange = _exchange;
         cp = _cp;
@@ -131,9 +127,9 @@ contract ProposalFactory {
     /// @notice 当提案的投票截止时, 由提案自动调用本函数.
     function resolveProposal(address proposalAddress, bool passed) external {
         require(msg.sender == proposalAddress, "Unauthorized."); // Only callable by the proposal itself.
-        
+
         // 移除活跃提案列表中的该提案.
-        for (uint i = 0; i < activeProposals.length; i++) {
+        for (uint256 i = 0; i < activeProposals.length; i++) {
             if (activeProposals[i] == proposalAddress) {
                 activeProposals[i] = activeProposals[activeProposals.length - 1];
                 activeProposals.pop();
@@ -148,7 +144,7 @@ contract ProposalFactory {
             Proposal prop = Proposal(proposalAddress);
             address target = prop.target();
             bytes memory data = prop.data();
-            (bool success, ) = target.call(data);
+            (bool success,) = target.call(data);
             require(success, "Proposal execution failed.");
         }
     }

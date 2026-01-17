@@ -40,12 +40,7 @@ contract CommitteeTreasury {
     event AssetTransferred(address indexed from, string assetType, uint256 amountOrId);
     event AssetExtracted(address indexed to, string assetType, uint256 amountOrId);
 
-    constructor(
-        address _ctAddress,
-        address _cpAddress,
-        Committee _committee,
-        ProposalFactory _proposalFactory
-    ) {
+    constructor(address _ctAddress, address _cpAddress, Committee _committee, ProposalFactory _proposalFactory) {
         ct = CustomToken(_ctAddress);
         cp = CustomPet(_cpAddress);
         committee = _committee;
@@ -80,7 +75,7 @@ contract CommitteeTreasury {
     function extractAsset(address to, string memory assetType, uint256 amountOrId) external {
         require(msg.sender == address(proposalFactory), "Unauthorized.");
         if (keccak256(bytes(assetType)) == keccak256(bytes("ETH"))) {
-            (bool success, ) = payable(to).call{value: amountOrId}("");
+            (bool success,) = payable(to).call{value: amountOrId}("");
             require(success, "ETH transfer failed.");
         } else if (keccak256(bytes(assetType)) == keccak256(bytes("CT"))) {
             require(ct.transfer(to, amountOrId), "CT transfer failed.");
@@ -156,7 +151,7 @@ contract CommitteeTreasury {
             require(ct.transfer(msg.sender, providedCT - price), "CT refund failed.");
         }
         // 从商店中移除该 CP
-        for (uint i = 0; i < listedCPs.length; i++) {
+        for (uint256 i = 0; i < listedCPs.length; i++) {
             if (listedCPs[i] == tokenId) {
                 listedCPs[i] = listedCPs[listedCPs.length - 1];
                 listedCPs.pop();
@@ -176,7 +171,7 @@ contract CommitteeTreasury {
 
         // 计算平均价格
         uint256 totalPrice = 0;
-        for (uint i = 0; i < listedCPs.length; i++) {
+        for (uint256 i = 0; i < listedCPs.length; i++) {
             totalPrice += cpPrices[listedCPs[i]];
         }
         uint256 a = totalPrice / listedCPs.length; // a: 平均价格
@@ -184,7 +179,7 @@ contract CommitteeTreasury {
         // 对用户要出售的每个 CP, 计算随机 CT 价格, 然后求和
         uint256 totalCT = 0;
         uint256 seed = block.number;
-        for (uint i = 0; i < tokenIds.length; i++) {
+        for (uint256 i = 0; i < tokenIds.length; i++) {
             // 通过 keccak256 算法产生随机数.
             uint256 random = uint256(keccak256(abi.encodePacked(seed, i, msg.sender))) % a;
             totalCT += random;
@@ -201,7 +196,7 @@ contract CommitteeTreasury {
     /// @notice Send ETH (internal, for committee remove stake).
     function sendETH(address to, uint256 amount) external {
         require(msg.sender == address(committee), "Only committee can send ETH.");
-        (bool success, ) = payable(to).call{value: amount}("");
+        (bool success,) = payable(to).call{value: amount}("");
         require(success, "ETH transfer failed.");
     }
 }

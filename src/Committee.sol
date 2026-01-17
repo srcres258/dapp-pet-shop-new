@@ -10,7 +10,7 @@ import {CommitteeTreasury} from "./CommitteeTreasury.sol";
  * 成员可随时增加或者减少质押量. 若质押量减少为 0, 则退出委员会.
  */
 contract Committee {
-    CommitteeTreasury public treasury;    
+    CommitteeTreasury public treasury;
 
     mapping(address => uint256) public stakes;
     address[] public members;
@@ -49,11 +49,11 @@ contract Committee {
         stakes[msg.sender] -= amount;
         treasury.sendETH(msg.sender, amount); // Treasury sends ETH back
         emit RemovedStake(msg.sender, amount);
-        
+
         // 如果质押量减少为 0, 则退出委员会.
         if (stakes[msg.sender] == 0) {
             // 从成员列表中移除
-            for (uint i = 0; i < members.length; i++) {
+            for (uint256 i = 0; i < members.length; i++) {
                 if (members[i] == msg.sender) {
                     members[i] = members[members.length - 1];
                     members.pop();

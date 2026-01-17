@@ -68,10 +68,10 @@ contract Trade {
         }
 
         // Transfer CPs to buyer
-        for (uint i = 0; i < depositedCPs.length; i++) {
+        for (uint256 i = 0; i < depositedCPs.length; i++) {
             cp.transferFrom(address(this), buyer, depositedCPs[i]);
         }
-        
+
         active = false;
         emit TradeConfirmed();
     }
@@ -103,7 +103,7 @@ contract Trade {
 
     /// @notice 内部函数: 退还 CP 给卖方.
     function _returnCPs() internal {
-        for (uint i = 0; i < depositedCPs.length; i++) {
+        for (uint256 i = 0; i < depositedCPs.length; i++) {
             cp.transferFrom(address(this), seller, depositedCPs[i]);
         }
         delete depositedCPs;

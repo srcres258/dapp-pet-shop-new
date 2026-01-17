@@ -90,23 +90,19 @@ contract Proposal {
     }
 
     /// @notice 获取提案当前状态.
-    function getInfo() external view returns (
-        address _initiator,
-        uint256 _startTime,
-        uint256 _endTime,
-        string memory _proposalType,
-        uint256 _yesWeight,
-        uint256 _noWeight,
-        bool _executed
-    ) {
-        return (
-            initiator,
-            startTime,
-            endTime,
-            proposalType,
-            yesWeight,
-            noWeight,
-            executed
-        );
+    function getInfo()
+        external
+        view
+        returns (
+            address _initiator,
+            uint256 _startTime,
+            uint256 _endTime,
+            string memory _proposalType,
+            uint256 _yesWeight,
+            uint256 _noWeight,
+            bool _executed
+        )
+    {
+        return (initiator, startTime, endTime, proposalType, yesWeight, noWeight, executed);
     }
 }

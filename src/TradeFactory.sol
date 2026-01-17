@@ -23,14 +23,7 @@ contract TradeFactory {
 
     /// @notice 创建新的交易实例.
     function createTrade(address _buyer, uint256 _duration, uint256 _priceCT) external {
-        Trade trade = new Trade(
-            msg.sender,
-            _buyer,
-            _duration,
-            _priceCT,
-            ctAddress,
-            cpAddress
-        );
+        Trade trade = new Trade(msg.sender, _buyer, _duration, _priceCT, ctAddress, cpAddress);
         trades.push(address(trade));
 
         emit TradeCreated(address(trade));

@@ -17,11 +17,7 @@ contract Viewer {
     TradeFactory public tradeFactory;
     ProposalFactory public proposalFactory;
 
-    constructor(
-        CustomPet _cp,
-        TradeFactory _tradeFactory,
-        ProposalFactory _proposalFactory
-    ) {
+    constructor(CustomPet _cp, TradeFactory _tradeFactory, ProposalFactory _proposalFactory) {
         cp = _cp;
         tradeFactory = _tradeFactory;
         proposalFactory = _proposalFactory;
@@ -47,7 +43,7 @@ contract Viewer {
     function getUserTrades(address user) external view returns (address[] memory) {
         address[] memory allTrades = tradeFactory.getTrades();
         uint256 count = 0;
-        for (uint i = 0; i < allTrades.length; i++) {
+        for (uint256 i = 0; i < allTrades.length; i++) {
             Trade trade = Trade(allTrades[i]);
             if (trade.seller() == user) {
                 count++;
@@ -55,7 +51,7 @@ contract Viewer {
         }
         address[] memory userTrades = new address[](count);
         uint256 index = 0;
-        for (uint i = 0; i < allTrades.length; i++) {
+        for (uint256 i = 0; i < allTrades.length; i++) {
             Trade trade = Trade(allTrades[i]);
             if (trade.seller() == user) {
                 userTrades[index] = allTrades[i];
@@ -76,15 +72,19 @@ contract Viewer {
     }
 
     /// @notice 获取提案的详细信息.
-    function getProposalDetails(address proposalAddress) external view returns (
-        address _initiator,
-        uint256 _startTime,
-        uint256 _endTime,
-        string memory _proposalType,
-        uint256 _yesWeight,
-        uint256 _noWeight,
-        bool _executed
-    ) {
+    function getProposalDetails(address proposalAddress)
+        external
+        view
+        returns (
+            address _initiator,
+            uint256 _startTime,
+            uint256 _endTime,
+            string memory _proposalType,
+            uint256 _yesWeight,
+            uint256 _noWeight,
+            bool _executed
+        )
+    {
         Proposal proposal = Proposal(proposalAddress);
         return proposal.getInfo();
     }

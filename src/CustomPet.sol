@@ -47,13 +47,7 @@ contract CustomPet is ERC721URIStorage, ERC721Enumerable {
 
     /* 注: 由于继承了 ERC721Enumerable, 需要重写以下函数. */
 
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        virtual
-        override(ERC721, ERC721URIStorage)
-        returns (string memory)
-    {
+    function tokenURI(uint256 tokenId) public view virtual override(ERC721, ERC721URIStorage) returns (string memory) {
         return super.tokenURI(tokenId);
     }
 
@@ -92,18 +86,16 @@ contract CustomPet is ERC721URIStorage, ERC721Enumerable {
         _burn(tokenId);
     }
 
-    function _increaseBalance(
-        address account,
-        uint128 amount
-    ) internal virtual override(ERC721, ERC721Enumerable) {
+    function _increaseBalance(address account, uint128 amount) internal virtual override(ERC721, ERC721Enumerable) {
         super._increaseBalance(account, amount);
     }
 
-    function _update(
-        address to,
-        uint256 tokenId,
-        address auth
-    ) internal virtual override(ERC721, ERC721Enumerable) returns (address) {
+    function _update(address to, uint256 tokenId, address auth)
+        internal
+        virtual
+        override(ERC721, ERC721Enumerable)
+        returns (address)
+    {
         return super._update(to, tokenId, auth);
     }
 }

@@ -41,7 +41,7 @@ contract Exchange {
         uint256 ethAmount = (ctAmount * 1 ether) / k;
         require(address(this).balance >= ethAmount, "There is no sufficient ETH in the exchange.");
         ct.burn(msg.sender, ctAmount);
-        (bool success, ) = payable(msg.sender).call{value: ethAmount}("");
+        (bool success,) = payable(msg.sender).call{value: ethAmount}("");
         require(success, "ETH transfer failed.");
         emit ExchangedCTToETH(msg.sender, ctAmount, ethAmount);
     }
