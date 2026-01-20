@@ -9,36 +9,17 @@ import {
   lightTheme,
   darkTheme
 } from '@rainbow-me/rainbowkit';
-import type { Chain, Theme } from '@rainbow-me/rainbowkit';
+import type { Theme } from '@rainbow-me/rainbowkit';
 import {
   QueryClient,
   QueryClientProvider
 } from '@tanstack/react-query';
 
+import { ephemeryChain } from './chains';
+
 const queryClient = new QueryClient();
 
 const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID ?? '';
-
-const ephemeryChain = {
-  id: 39438155,
-  name: 'Ephemery Chain',
-  nativeCurrency: {
-    name: 'Ephemery ETH',
-    symbol: 'ETH',
-    decimals: 18,
-  },
-  rpcUrls: {
-    default: {
-      http: ['https://otter.bordel.wtf/erigon']
-    }
-  },
-  blockExplorers: {
-    default: {
-      name: 'Testnet Ethereum Explorer',
-      url: 'https://explorer.ephemery.dev'
-    }
-  }
-} as const satisfies Chain;
 
 const config = getDefaultConfig({
   appName: 'Dapp Pet Shop',

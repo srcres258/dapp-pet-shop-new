@@ -1,6 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
+  useConnection,
+  useBalance,
   useReadContract,
   useWriteContract
 } from 'wagmi';
@@ -11,11 +13,14 @@ import {
 import {
   useState
 } from 'react';
-import { formatEther } from 'viem';
+import {
+  formatEther,
+  formatUnits
+} from 'viem';
+import { ephemeryChain } from '@/lib/chains';
 
 function Exchange() {
-  const address = contractAddress.Exchange;
-  const abi = contractABI.Exchange;
+  const { address, isConnected } = useConnection();
 
   const {
     mutate: writeContract,
@@ -28,9 +33,21 @@ function Exchange() {
     status
   } = useWriteContract();
 
-  const { data: kFactor }: { data?: bigint } = useReadContract({
-    address,
-    abi,
+  const { data: ethBalance } = useBalance({
+    address: address,
+    chainId: ephemeryChain.id
+  });
+  const { data: ctBalance }: { data: bigint | undefined } = useReadContract({
+    address: contractAddress.CustomToken,
+    abi: contractABI.CustomToken,
+    functionName: 'balanceOf',
+    args: [address!],
+    query: { enabled: isConnected && !!address }
+  });
+
+  const { data: kFactor }: { data: bigint | undefined } = useReadContract({
+    address: contractAddress.Exchange,
+    abi: contractABI.Exchange,
     functionName: 'k'
   });
 
@@ -40,8 +57,8 @@ function Exchange() {
 
   const handleExchangeETHToCT = () => {
     writeContract({
-      address,
-      abi,
+      address: contractAddress.Exchange,
+      abi: contractABI.Exchange,
       functionName: 'exchangeETHToCT',
       value: BigInt(calcWeiFromCT(ctAmount))
     });
@@ -49,8 +66,8 @@ function Exchange() {
 
   const handleExchangeCTToETH = () => {
     writeContract({
-      address,
-      abi,
+      address: contractAddress.Exchange,
+      abi: contractABI.Exchange,
       functionName: 'exchangeCTToETH',
       args: [BigInt(ctAmount) * (10n ** 18n)]
     });
@@ -60,6 +77,8 @@ function Exchange() {
     <div>
       <p>CustomToken Exchange</p>
 
+      <p>您的 ETH 余额: {ethBalance !== undefined ? formatUnits(ethBalance.value, ethBalance.decimals) : 'Loading...'}</p>
+      <p>您的 CT 余额: {ctBalance !== undefined ? formatEther(ctBalance) : 'Loading...'}</p>
       <p>当前兑换率: {kFactor ? `1 CT = ${formatEther(kFactor)} ETH` : 'Loading...'}</p>
 
       <p>
@@ -73,14 +92,14 @@ function Exchange() {
       </p>
 
       <p>
-        {address ? (isPending ? '操作执行中...' : '请选择要执行的操作:') : '合约地址加载失败.'}
+        {address ? (isPending ? '操作执行中...' : '请选择要执行的操作:') : '您还未连接钱包, 请先连接钱包!'}
       </p>
 
       <p>
         <Button
           variant="outline"
           onClick={handleExchangeETHToCT}
-          disabled={isPending || !address}
+          disabled={!kFactor || isPending || !address}
         >
           使用 {formatEther(calcWeiFromCT(ctAmount))} ETH 兑换 {ctAmount} CT
         </Button>
@@ -88,7 +107,7 @@ function Exchange() {
         <Button
           variant="outline"
           onClick={handleExchangeCTToETH}
-          disabled={isPending || !address}
+          disabled={!kFactor || isPending || !address}
         >
           兑换 {ctAmount} CT 为 {formatEther(calcWeiFromCT(ctAmount))} ETH
         </Button>
