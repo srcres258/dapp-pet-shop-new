@@ -14,6 +14,10 @@ contract Committee {
 
     mapping(address => uint256) public stakes;
     address[] public members;
+    struct Stake {
+        address member;
+        uint256 amount;
+    }
 
     event JoinedCommittee(address indexed member, uint256 amount);
     event AddedStake(address indexed member, uint256 amount);
@@ -74,13 +78,25 @@ contract Committee {
         }
     }
 
-    /// @notice 获取当前委员会成员列表.
-    function getMembers() external view returns (address[] memory) {
-        return members;
+    /// @notice 获取当前委员会成员列表, 包含其质押量.
+    function getMembers() external view returns (Stake[] memory) {
+        Stake[] memory committeeMembers = new Stake[](members.length);
+        for (uint256 i = 0; i < members.length; i++) {
+            committeeMembers[i] = Stake({
+                member: members[i],
+                amount: stakes[members[i]]
+            });
+        }
+        return committeeMembers;
     }
 
     /// @notice 检查某个地址是否为委员会成员.
     function isMember(address addr) external view returns (bool) {
         return stakes[addr] > 0;
+    }
+
+    /// @notice 获取委员会成员的质押量.
+    function getStake(address addr) external view returns (uint256) {
+        return stakes[addr];
     }
 }

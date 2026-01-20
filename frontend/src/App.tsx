@@ -6,7 +6,7 @@ import Index from './pages/index';
 import Viewer from './pages/viewer';
 import Exchange from './pages/exchange';
 import Trade from './pages/trade';
-import Committee from './pages/committee';
+import Committee from './pages/committee/index';
 
 function App() {
   return (

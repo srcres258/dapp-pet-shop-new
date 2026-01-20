@@ -17,7 +17,7 @@ import {
   formatEther,
   formatUnits
 } from 'viem';
-import { ephemeryChain } from '@/lib/chains';
+import { anvilChain } from '@/lib/chains';
 
 function Exchange() {
   const { address, isConnected } = useConnection();
@@ -35,7 +35,7 @@ function Exchange() {
 
   const { data: ethBalance } = useBalance({
     address: address,
-    chainId: ephemeryChain.id
+    chainId: anvilChain.id
   });
   const { data: ctBalance }: { data: bigint | undefined } = useReadContract({
     address: contractAddress.CustomToken,
