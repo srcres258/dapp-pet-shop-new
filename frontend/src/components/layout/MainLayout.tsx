@@ -26,6 +26,9 @@ export default function MainLayout() {
             <NavLink to='/viewer' className={classNameFunctor}>
               Viewer
             </NavLink>
+            <NavLink to='/exchange' className={classNameFunctor}>
+              Exchange
+            </NavLink>
             <NavLink to='/trade' className={classNameFunctor}>
               Trade
             </NavLink>
