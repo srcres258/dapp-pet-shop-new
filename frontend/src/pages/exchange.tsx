@@ -11,7 +11,7 @@ import {
 import {
   useState
 } from 'react';
-import { parseEther } from 'viem';
+import { formatEther } from 'viem';
 
 function Exchange() {
   const address = contractAddress.Exchange;
@@ -36,14 +36,14 @@ function Exchange() {
 
   const [ctAmount, setCTAmount] = useState(1);
 
-  const calcETHFromCT = (ctAmount: number, k: bigint | undefined = kFactor) => k ? (ctAmount * Number(k)) : 0;
+  const calcWeiFromCT = (ctAmount: number, k: bigint | undefined = kFactor) => k ? (BigInt(ctAmount) * k) : 0n;
 
   const handleExchangeETHToCT = () => {
     writeContract({
       address,
       abi,
       functionName: 'exchangeETHToCT',
-      value: parseEther(`${calcETHFromCT(ctAmount)}`, 'wei')
+      value: BigInt(calcWeiFromCT(ctAmount))
     });
   };
 
@@ -52,7 +52,7 @@ function Exchange() {
       address,
       abi,
       functionName: 'exchangeCTToETH',
-      args: [BigInt(ctAmount)]
+      args: [BigInt(ctAmount) * (10n ** 18n)]
     });
   };
 
@@ -60,7 +60,7 @@ function Exchange() {
     <div>
       <p>CustomToken Exchange</p>
 
-      <p>当前兑换率: {kFactor ? `1 CT = ${kFactor} ETH` : 'Loading...'}</p>
+      <p>当前兑换率: {kFactor ? `1 CT = ${formatEther(kFactor)} ETH` : 'Loading...'}</p>
 
       <p>
         要进行操作的 CT 数量:
@@ -82,7 +82,7 @@ function Exchange() {
           onClick={handleExchangeETHToCT}
           disabled={isPending || !address}
         >
-          使用 {calcETHFromCT(ctAmount)} ETH 兑换 {ctAmount} CT
+          使用 {formatEther(calcWeiFromCT(ctAmount))} ETH 兑换 {ctAmount} CT
         </Button>
 
         <Button
@@ -90,7 +90,7 @@ function Exchange() {
           onClick={handleExchangeCTToETH}
           disabled={isPending || !address}
         >
-          兑换 {ctAmount} CT 为 {calcETHFromCT(ctAmount)} ETH
+          兑换 {ctAmount} CT 为 {formatEther(calcWeiFromCT(ctAmount))} ETH
         </Button>
       </p>
     </div>

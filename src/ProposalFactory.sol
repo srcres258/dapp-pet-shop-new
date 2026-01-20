@@ -15,7 +15,7 @@ import {CommitteeTreasury} from "./CommitteeTreasury.sol";
  */
 contract ProposalFactory {
     Committee public committee;
-    Exchange public exchange = Exchange(address(0));
+    Exchange public exchange = Exchange(payable(0));
     CustomPet public cp;
     CommitteeTreasury public treasury;
 

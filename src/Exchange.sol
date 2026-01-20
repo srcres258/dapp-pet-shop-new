@@ -15,7 +15,7 @@ import {ProposalFactory} from "./ProposalFactory.sol";
 contract Exchange {
     CustomToken public ct;
     ProposalFactory public proposalFactory;
-    uint256 public k; // 汇率. 1 CT = k ETH (单位用 wei, 为了保证精度)
+    uint256 public k; // 汇率. 1 CT = k wei = k * 10^-18 ETH
 
     event ExchangedETHToCT(address indexed user, uint256 ethAmount, uint256 ctAmount);
     event ExchangedCTToETH(address indexed user, uint256 ctAmount, uint256 ethAmount);
@@ -27,23 +27,25 @@ contract Exchange {
         k = _k;
     }
 
+    receive() external payable {}
+
     /// @notice 以 k 汇率兑换 ETH 为 CT
     function exchangeETHToCT() external payable {
         require(msg.value > 0, "Must send ETH to exchange for CT.");
-        uint256 ctAmount = (msg.value * k) / 1 ether;
+        uint256 ctAmount = msg.value * 1 ether / k;
         ct.mint(msg.sender, ctAmount);
         emit ExchangedETHToCT(msg.sender, msg.value, ctAmount);
     }
 
     /// @notice 以 k 汇率兑换 CT 为 ETH
-    function exchangeCTToETH(uint256 ctAmount) external {
-        require(ctAmount > 0, "Must specify CT amount to exchange for ETH.");
-        uint256 ethAmount = (ctAmount * 1 ether) / k;
-        require(address(this).balance >= ethAmount, "There is no sufficient ETH in the exchange.");
-        ct.burn(msg.sender, ctAmount);
-        (bool success,) = payable(msg.sender).call{value: ethAmount}("");
+    function exchangeCTToETH(uint256 ctWeiAmount) external {
+        require(ctWeiAmount > 0, "Must specify CT amount to exchange for ETH.");
+        uint256 ethWeiAmount = ctWeiAmount * k / 1 ether;
+        require(address(this).balance >= ethWeiAmount, "There is no sufficient ETH in the exchange.");
+        ct.burn(msg.sender, ctWeiAmount);
+        (bool success,) = payable(msg.sender).call{value: ethWeiAmount}("");
         require(success, "ETH transfer failed.");
-        emit ExchangedCTToETH(msg.sender, ctAmount, ethAmount);
+        emit ExchangedCTToETH(msg.sender, ctWeiAmount, ethWeiAmount);
     }
 
     /// @notice 提交更改汇率 k 的提案, 供委员会来表决

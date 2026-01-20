@@ -21,6 +21,10 @@
     "stateMutability": "nonpayable"
   },
   {
+    "type": "receive",
+    "stateMutability": "payable"
+  },
+  {
     "type": "function",
     "name": "adjustK",
     "inputs": [
@@ -51,7 +55,7 @@
     "name": "exchangeCTToETH",
     "inputs": [
       {
-        "name": "ctAmount",
+        "name": "ctWeiAmount",
         "type": "uint256",
         "internalType": "uint256"
       }

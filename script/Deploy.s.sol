@@ -31,7 +31,8 @@ contract DeployScript is Script {
         ProposalFactory proposalFactory = new ProposalFactory(committee, cp, treasury);
 
         // 4. Initialise exchange
-        Exchange exchange = new Exchange(ct, proposalFactory, 1); // initial k = 1
+        // Initially: k = 1 ether = 10^18 wei
+        Exchange exchange = new Exchange(ct, proposalFactory, 1 ether);
         proposalFactory.setExchange(exchange);
 
         // 5. Initialise trade factory
@@ -41,15 +42,15 @@ contract DeployScript is Script {
         Viewer viewer = new Viewer(cp, tradeFactory, proposalFactory);
 
         // 7. Output deployed addresses
-        console.log("Deployment finished.");
-        console.log("CustomToken deployed at:", address(ct));
-        console.log("CustomPet deployed at:", address(cp));
-        console.log("Committee deployed at:", address(committee));
-        console.log("CommitteeTreasury deployed at:", address(treasury));
-        console.log("ProposalFactory deployed at:", address(proposalFactory));
-        console.log("Exchange deployed at:", address(exchange));
-        console.log("TradeFactory deployed at:", address(tradeFactory));
-        console.log("Viewer deployed at:", address(viewer));
+        console.log("Deployment results:");
+        console.log("CustomToken: \"", address(ct), "\"");
+        console.log("CustomPet: \"", address(cp), "\"");
+        console.log("Committee: \"", address(committee), "\"");
+        console.log("CommitteeTreasury: \"", address(treasury), "\"");
+        console.log("ProposalFactory: \"", address(proposalFactory), "\"");
+        console.log("Exchange: \"", address(exchange), "\"");
+        console.log("TradeFactory: \"", address(tradeFactory), "\"");
+        console.log("Viewer: \"", address(viewer), "\"");
 
         vm.stopBroadcast();
     }
