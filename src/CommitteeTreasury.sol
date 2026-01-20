@@ -40,10 +40,23 @@ contract CommitteeTreasury {
     event AssetTransferred(address indexed from, string assetType, uint256 amountOrId);
     event AssetExtracted(address indexed to, string assetType, uint256 amountOrId);
 
-    constructor(address _ctAddress, address _cpAddress, Committee _committee, ProposalFactory _proposalFactory) {
+    constructor(address _ctAddress, address _cpAddress, Committee _committee) {
         ct = CustomToken(_ctAddress);
         cp = CustomPet(_cpAddress);
         committee = _committee;
+    }
+
+    modifier requiresProposalFactorySet() {
+        _requiresProposalFactorySet();
+        _;
+    }
+
+    function _requiresProposalFactorySet() private view {
+        require(address(proposalFactory) != address(0), "ProposalFactory has not been set yet.");
+    }
+
+    /// @notice Set the ProposalFactory for the treasury.
+    function setProposalFactory(ProposalFactory _proposalFactory) external {
         proposalFactory = _proposalFactory;
     }
 
@@ -66,13 +79,13 @@ contract CommitteeTreasury {
     }
 
     /// @notice 委员会成员发起提案, 将资产从本合约中提取到指定地址.
-    function proposeExtract(address to, string memory assetType, uint256 amountOrId) external {
+    function proposeExtract(address to, string memory assetType, uint256 amountOrId) external requiresProposalFactorySet {
         require(committee.isMember(msg.sender), "Only committee members can propose asset extraction.");
         proposalFactory.createExtractProposal(to, assetType, amountOrId);
     }
 
     /// @notice 真正的资产提取逻辑. 提案通过后自动调用.
-    function extractAsset(address to, string memory assetType, uint256 amountOrId) external {
+    function extractAsset(address to, string memory assetType, uint256 amountOrId) external requiresProposalFactorySet {
         require(msg.sender == address(proposalFactory), "Unauthorized.");
         if (keccak256(bytes(assetType)) == keccak256(bytes("ETH"))) {
             (bool success,) = payable(to).call{value: amountOrId}("");
@@ -88,48 +101,48 @@ contract CommitteeTreasury {
     }
 
     /// @notice 发起提案, 切换商店开关.
-    function proposeToggleStore() external {
+    function proposeToggleStore() external requiresProposalFactorySet {
         proposalFactory.createToggleStoreProposal();
     }
 
     /// @notice 切换商店开关逻辑. 提案通过后自动调用.
-    function toggleStore() external {
+    function toggleStore() external requiresProposalFactorySet {
         require(msg.sender == address(proposalFactory), "Unauthorized.");
         storeOpen = !storeOpen;
         emit StoreToggled(storeOpen);
     }
 
     /// @notice 发起提案, 切换商店购买功能开关.
-    function proposeToggleStoreBuying() external {
+    function proposeToggleStoreBuying() external requiresProposalFactorySet {
         proposalFactory.createToggleStoreBuyingProposal();
     }
 
     /// @notice 切换商店购买功能开关逻辑. 提案通过后自动调用.
-    function toggleStoreBuying() external {
+    function toggleStoreBuying() external requiresProposalFactorySet {
         require(msg.sender == address(proposalFactory), "Unauthorized.");
         storeBuyingEnabled = !storeBuyingEnabled;
         emit StoreBuyingToggled(storeBuyingEnabled);
     }
 
     /// @notice 发起提案, 切换商店出售功能开关.
-    function proposeToggleStoreSelling() external {
+    function proposeToggleStoreSelling() external requiresProposalFactorySet {
         proposalFactory.createToggleStoreSellingProposal();
     }
 
     /// @notice 切换商店出售功能开关逻辑. 提案通过后自动调用.
-    function toggleStoreSelling() external {
+    function toggleStoreSelling() external requiresProposalFactorySet {
         require(msg.sender == address(proposalFactory), "Unauthorized.");
         storeSellingEnabled = !storeSellingEnabled;
         emit StoreSellingToggled(storeSellingEnabled);
     }
 
     /// @notice 发起提案, 在商店中陈列新的 CP Token.
-    function proposeListCP(uint256 tokenId, uint256 price) external {
+    function proposeListCP(uint256 tokenId, uint256 price) external requiresProposalFactorySet {
         proposalFactory.createListCPProposal(tokenId, price);
     }
 
     /// @notice 在商店中陈列新的 CP Token 逻辑. 提案通过后自动调用.
-    function listCP(uint256 tokenId, uint256 price) external {
+    function listCP(uint256 tokenId, uint256 price) external requiresProposalFactorySet {
         require(msg.sender == address(proposalFactory), "Unauthorized.");
         require(cp.ownerOf(tokenId) == address(this), "Treasury does not own this CP.");
         cpPrices[tokenId] = price;

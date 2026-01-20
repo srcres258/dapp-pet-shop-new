@@ -15,7 +15,7 @@ import {CommitteeTreasury} from "./CommitteeTreasury.sol";
  */
 contract ProposalFactory {
     Committee public committee;
-    Exchange public exchange;
+    Exchange public exchange = Exchange(address(0));
     CustomPet public cp;
     CommitteeTreasury public treasury;
 
@@ -26,11 +26,24 @@ contract ProposalFactory {
 
     event ProposalCreated(address indexed proposalAddress, string proposalType);
 
-    constructor(Committee _committee, Exchange _exchange, CustomPet _cp, CommitteeTreasury _treasury) {
+    constructor(Committee _committee, CustomPet _cp, CommitteeTreasury _treasury) {
         committee = _committee;
-        exchange = _exchange;
         cp = _cp;
         treasury = _treasury;
+    }
+
+    modifier requiresExchangeSet() {
+        _requiresExchangeSet();
+        _;
+    }
+
+    function _requiresExchangeSet() private view {
+        require(address(exchange) != address(0), "Exchange has not been set yet.");
+    }
+
+    /// @notice Set the Exchange for the factory.
+    function setExchange(Exchange _exchange) external {
+        exchange = _exchange;
     }
 
     /// @notice Modifier to check committee member.
@@ -44,7 +57,7 @@ contract ProposalFactory {
     }
 
     /// @notice 创建调整 k 的提案.
-    function createAdjustKProposal(uint256 newK) external onlyCommittee {
+    function createAdjustKProposal(uint256 newK) external onlyCommittee requiresExchangeSet {
         Proposal prop = new Proposal(address(this), votingTime, "AdjustK");
         prop.setTarget(address(exchange));
         prop.setData(abi.encodeWithSignature("adjustK(uint256)", newK));

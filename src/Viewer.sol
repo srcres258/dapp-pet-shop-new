@@ -23,21 +23,21 @@ contract Viewer {
         proposalFactory = _proposalFactory;
     }
 
-    // /// @notice 获取用户拥有的所有 CP 及其 URI.
-    // function getOwnedCPs(address user) external view returns (
-    //     uint256[] memory tokenIds,
-    //     string[] memory tokenURIs
-    // ) {
-    //     uint256 balance = cp.balanceOf(user);
-    //     tokenIds = new uint256[](balance);
-    //     tokenURIs = new string[](balance);
+    /// @notice 获取用户拥有的所有 CP 及其 URI.
+    function getOwnedCPs(address user) external view returns (
+        uint256[] memory tokenIds,
+        string[] memory tokenURIs
+    ) {
+        uint256 balance = cp.balanceOf(user);
+        tokenIds = new uint256[](balance);
+        tokenURIs = new string[](balance);
 
-    //     for (uint i = 0; i < balance; i++) {
-    //         uint256 id = cp.tokenOfOwnerByIndex(user, uint256(i));
-    //         tokenIds[i] = id;
-    //         tokenURIs[i] = cp.tokenURI(id);
-    //     }
-    // }
+        for (uint i = 0; i < balance; i++) {
+            uint256 id = cp.tokenOfOwnerByIndex(user, uint256(i));
+            tokenIds[i] = id;
+            tokenURIs[i] = cp.tokenURI(id);
+        }
+    }
 
     /// @notice 获取用户发起的所有交易实例, 包括正在进行的和结束了的.
     function getUserTrades(address user) external view returns (address[] memory) {
