@@ -20,4 +20,4 @@ export const contractABI: Record<string, object[]> = {
   Viewer: ViewerABI
 };
 
-export const NFT_STORAGE_API_KEY = import.meta.env.VITE_NFT_STORAGE_API_KEY as string;
+export const PINATA_JWT = import.meta.env.VITE_PINATA_JWT as string;

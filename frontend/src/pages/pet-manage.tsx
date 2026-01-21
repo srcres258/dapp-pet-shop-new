@@ -15,9 +15,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useWriteContract } from 'wagmi';
 import { useState, useCallback } from 'react';
-import { contractAddress, contractABI, NFT_STORAGE_API_KEY } from '@/constants';
+import { contractAddress, contractABI, PINATA_JWT } from '@/constants';
 import { useDropzone } from 'react-dropzone';
-import { NFTStorage } from 'nft.storage';
+import { PinataSDK } from 'pinata';
 
 function OwnedPetList(props: { address: `0x${string}` }) {
   const address = props.address;
@@ -71,20 +71,35 @@ function MintPet(props: { address: `0x${string}` }) {
 
     setUploading(true);
     try {
-      console.log('api key:', NFT_STORAGE_API_KEY);
-      const client = new NFTStorage({ token: NFT_STORAGE_API_KEY });
-      const imageBlob = new Blob([imageFile], { type: imageFile.type });
-      const imageCid = await client.storeBlob(imageBlob);
-      const imageUri = `https://ipfs.io/ipfs/${imageCid}`;
+      const pinata = new PinataSDK({
+        pinataJwt: PINATA_JWT,
+        pinataGateway: "gateway.pinata.cloud",
+      });
+
+      const imageUpload = await pinata.upload.public.file(
+        imageFile,
+        {
+          metadata: {
+            name: `nft-image-${imageFile.name}`
+          }
+        }
+      );
+      const imageUri = `https://gateway.pinata.cloud/ipfs/${imageUpload.IpfsHash}`;
 
       const metadata = {
         name,
         description,
         image: imageUri
       };
-      const metadataBlob = new Blob([JSON.stringify(metadata)], { type: 'application/json' });
-      const metadataCid = await client.storeBlob(metadataBlob);
-      const uri = `https://ipfs.io/ipfs/${metadataCid}`;
+      const metadataUpload = await pinata.upload.public.json(
+        metadata,
+        {
+          metadata: {
+            name: 'nft-metadata.json'
+          }
+        }
+      );
+      const uri = `https://gateway.pinata.cloud/ipfs/${metadataUpload.IpfsHash}`;
 
       await writeContractAsync({
         address: contractAddress.CustomPet,
