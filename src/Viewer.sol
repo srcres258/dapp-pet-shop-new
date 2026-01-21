@@ -35,8 +35,8 @@ contract Viewer {
         }
     }
 
-    /// @notice 获取用户发起的所有交易实例, 包括正在进行的和结束了的.
-    function getUserTrades(address user) external view returns (address[] memory) {
+    /// @notice 获取用户作为卖方发起的所有交易实例, 包括正在进行的和结束了的.
+    function getUserSellingTrades(address user) external view returns (address[] memory) {
         address[] memory allTrades = tradeFactory.getTrades();
         uint256 count = 0;
         for (uint256 i = 0; i < allTrades.length; i++) {
@@ -50,6 +50,50 @@ contract Viewer {
         for (uint256 i = 0; i < allTrades.length; i++) {
             Trade trade = Trade(allTrades[i]);
             if (trade.seller() == user) {
+                userTrades[index] = allTrades[i];
+                index++;
+            }
+        }
+        return userTrades;
+    }
+
+    /// @notice 获取用户作为买方收到的所有交易实例, 包括正在进行的和结束了的.
+    function getUserBuyingTrades(address user) external view returns (address[] memory) {
+        address[] memory allTrades = tradeFactory.getTrades();
+        uint256 count = 0;
+        for (uint256 i = 0; i < allTrades.length; i++) {
+            Trade trade = Trade(allTrades[i]);
+            if (trade.buyer() == user) {
+                count++;
+            }
+        }
+        address[] memory userTrades = new address[](count);
+        uint256 index = 0;
+        for (uint256 i = 0; i < allTrades.length; i++) {
+            Trade trade = Trade(allTrades[i]);
+            if (trade.buyer() == user) {
+                userTrades[index] = allTrades[i];
+                index++;
+            }
+        }
+        return userTrades;
+    }
+
+    /// @notice 获取与用户有关的所有交易 (包括用户为卖方或者买方的所有交易), 包括正在进行的和结束了的.
+    function getUserAllTrades(address user) external view returns (address[] memory) {
+        address[] memory allTrades = tradeFactory.getTrades();
+        uint256 count = 0;
+        for (uint256 i = 0; i < allTrades.length; i++) {
+            Trade trade = Trade(allTrades[i]);
+            if (trade.seller() == user || trade.buyer() == user) {
+                count++;
+            }
+        }
+        address[] memory userTrades = new address[](count);
+        uint256 index = 0;
+        for (uint256 i = 0; i < allTrades.length; i++) {
+            Trade trade = Trade(allTrades[i]);
+            if (trade.seller() == user || trade.buyer() == user) {
                 userTrades[index] = allTrades[i];
                 index++;
             }
