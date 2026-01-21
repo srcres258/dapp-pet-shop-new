@@ -6,7 +6,7 @@ import Index from './pages/index';
 import Viewer from './pages/viewer';
 import Exchange from './pages/exchange';
 import Trade from './pages/trade';
-import Committee from './pages/committee/index';
+import PetManage from './pages/pet-manage';
 
 function App() {
   return (
@@ -16,7 +16,7 @@ function App() {
         <Route path="viewer" element={<Viewer />} />
         <Route path="exchange" element={<Exchange />} />
         <Route path="trade" element={<Trade />} />
-        <Route path="committee" element={<Committee />} />
+        <Route path="pet-manage" element={<PetManage />} />
       </Route>
     </Routes>
   );

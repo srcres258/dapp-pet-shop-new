@@ -32,8 +32,8 @@ export default function MainLayout() {
             <NavLink to='/trade' className={classNameFunctor}>
               Trade
             </NavLink>
-            <NavLink to='/committee' className={classNameFunctor}>
-              Committee
+            <NavLink to='/pet-manage' className={classNameFunctor}>
+              Pet Manage
             </NavLink>
           </nav>
         </div>

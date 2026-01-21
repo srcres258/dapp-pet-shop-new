@@ -2,7 +2,6 @@
 pragma solidity ^0.8.24;
 
 import {CustomToken} from "./CustomToken.sol";
-import {ProposalFactory} from "./ProposalFactory.sol";
 
 /**
  * @title Exchange 交易所
@@ -14,16 +13,14 @@ import {ProposalFactory} from "./ProposalFactory.sol";
  */
 contract Exchange {
     CustomToken public ct;
-    ProposalFactory public proposalFactory;
     uint256 public k; // 汇率. 1 CT = k wei = k * 10^-18 ETH
 
     event ExchangedETHToCT(address indexed user, uint256 ethAmount, uint256 ctAmount);
     event ExchangedCTToETH(address indexed user, uint256 ctAmount, uint256 ethAmount);
     event KAdjusted(uint256 oldK, uint256 newK);
 
-    constructor(CustomToken _ct, ProposalFactory _proposalFactory, uint256 _k) {
+    constructor(CustomToken _ct, uint256 _k) {
         ct = _ct;
-        proposalFactory = _proposalFactory;
         k = _k;
     }
 
@@ -48,16 +45,8 @@ contract Exchange {
         emit ExchangedCTToETH(msg.sender, ctWeiAmount, ethWeiAmount);
     }
 
-    /// @notice 提交更改汇率 k 的提案, 供委员会来表决
-    function proposeAdjustK(uint256 newK) external {
-        // 假设调用者是委员会成员. 真正的检查由 ProposalFactory 内部完成.
-        proposalFactory.createAdjustKProposal(newK);
-    }
-
     /// @notice 内部函数. 当提案通过时调用以调整 k
     function adjustK(uint256 newK) external {
-        // Only callable by Proposal contract after passing.
-        require(msg.sender == address(proposalFactory), "Unauthorized.");
         uint256 oldK = k;
         k = newK;
         emit KAdjusted(oldK, newK);

@@ -3,9 +3,7 @@ pragma solidity ^0.8.24;
 
 import {CustomPet} from "./CustomPet.sol";
 import {TradeFactory} from "./TradeFactory.sol";
-import {ProposalFactory} from "./ProposalFactory.sol";
 import {Trade} from "./Trade.sol";
-import {Proposal} from "./Proposal.sol";
 
 /**
  * @title Viewer 用户自身状态查询合约
@@ -15,12 +13,10 @@ import {Proposal} from "./Proposal.sol";
 contract Viewer {
     CustomPet public cp;
     TradeFactory public tradeFactory;
-    ProposalFactory public proposalFactory;
 
-    constructor(CustomPet _cp, TradeFactory _tradeFactory, ProposalFactory _proposalFactory) {
+    constructor(CustomPet _cp, TradeFactory _tradeFactory) {
         cp = _cp;
         tradeFactory = _tradeFactory;
-        proposalFactory = _proposalFactory;
     }
 
     /// @notice 获取用户拥有的所有 CP 及其 URI.
@@ -59,33 +55,5 @@ contract Viewer {
             }
         }
         return userTrades;
-    }
-
-    /// @notice 获取所有活跃提案的信息.
-    function getActiveProposals() external view returns (address[] memory) {
-        return proposalFactory.getActiveProposals();
-    }
-
-    /// @notice 获取所有历史提案的信息.
-    function getHistoricalProposals() external view returns (address[] memory) {
-        return proposalFactory.getHistoricalProposals();
-    }
-
-    /// @notice 获取提案的详细信息.
-    function getProposalDetails(address proposalAddress)
-        external
-        view
-        returns (
-            address _initiator,
-            uint256 _startTime,
-            uint256 _endTime,
-            string memory _proposalType,
-            uint256 _yesWeight,
-            uint256 _noWeight,
-            bool _executed
-        )
-    {
-        Proposal proposal = Proposal(proposalAddress);
-        return proposal.getInfo();
     }
 }

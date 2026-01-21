@@ -15,7 +15,7 @@ import {
   QueryClientProvider
 } from '@tanstack/react-query';
 
-import { anvilChain } from './chains';
+import { ephemeryChain } from './chains';
 
 const queryClient = new QueryClient();
 
@@ -24,10 +24,10 @@ const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID ?? '';
 const config = getDefaultConfig({
   appName: 'Dapp Pet Shop',
   projectId,
-  chains: [anvilChain],
+  chains: [ephemeryChain],
   ssr: false,
   transports: {
-    [anvilChain.id]: http()
+    [ephemeryChain.id]: http()
   }
 });
 

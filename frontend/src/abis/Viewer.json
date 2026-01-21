@@ -11,11 +11,6 @@
         "name": "_tradeFactory",
         "type": "address",
         "internalType": "contract TradeFactory"
-      },
-      {
-        "name": "_proposalFactory",
-        "type": "address",
-        "internalType": "contract ProposalFactory"
       }
     ],
     "stateMutability": "nonpayable"
@@ -29,32 +24,6 @@
         "name": "",
         "type": "address",
         "internalType": "contract CustomPet"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getActiveProposals",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address[]",
-        "internalType": "address[]"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getHistoricalProposals",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address[]",
-        "internalType": "address[]"
       }
     ],
     "stateMutability": "view"
@@ -85,55 +54,6 @@
   },
   {
     "type": "function",
-    "name": "getProposalDetails",
-    "inputs": [
-      {
-        "name": "proposalAddress",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "_initiator",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "_startTime",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "_endTime",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "_proposalType",
-        "type": "string",
-        "internalType": "string"
-      },
-      {
-        "name": "_yesWeight",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "_noWeight",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "_executed",
-        "type": "bool",
-        "internalType": "bool"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "getUserTrades",
     "inputs": [
       {
@@ -147,19 +67,6 @@
         "name": "",
         "type": "address[]",
         "internalType": "address[]"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "proposalFactory",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "contract ProposalFactory"
       }
     ],
     "stateMutability": "view"
