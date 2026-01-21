@@ -1,13 +1,20 @@
 import { useReadContract, useConnection } from 'wagmi';
 import { type Address } from 'viem';
 import { contractAddress, contractABI } from '@/constants';
-import { useQueries } from '@tanstack/react-query';
 
 export function useOwnedCPs(address?: Address) {
   const { address: connectedAddress } = useConnection();
   const user = address || connectedAddress;
 
-  const { data, isLoading, error } = useReadContract({
+  const {
+    data,
+    isLoading,
+    error
+  }: {
+    data?: [bigint[], string[]],
+    isLoading: boolean,
+    error: Error | null
+  } = useReadContract({
     address: contractAddress.Viewer,
     abi: contractABI.Viewer,
     functionName: 'getOwnedCPs',
@@ -19,8 +26,8 @@ export function useOwnedCPs(address?: Address) {
   });
 
   return {
-    tokenIds: data?.[0] || [],
-    tokenURIs: data?.[1] || [],
+    tokenIds: (data?.[0]) || [],
+    tokenURIs: (data?.[1]) || [],
     isLoading,
     error
   };

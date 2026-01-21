@@ -24,13 +24,7 @@ function Exchange() {
 
   const {
     mutate: writeContract,
-    mutateAsync: writeContractAsync,
     isPending,
-    isSuccess,
-    data: hash,
-    error,
-    reset,
-    status
   } = useWriteContract();
 
   const { data: ethBalance } = useBalance({
