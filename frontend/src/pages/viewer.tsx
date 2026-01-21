@@ -22,7 +22,7 @@ function OwnedCPList() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {tokenIds.map((id, index) => (
+          {tokenIds.map((id: bigint, index: number) => (
             <TableRow key={id.toString()}>
               <TableCell>{id.toString()}</TableCell>
               <TableCell>{tokenURIs[index]}</TableCell>
@@ -53,7 +53,7 @@ function TradeList() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {trades.map((tradeAddr) => (
+          {(trades as `0x${string}`[]).map((tradeAddr: `0x${string}`) => (
             <TradeRow key={tradeAddr} tradeAddress={tradeAddr} userAddress={address} />
           ))}
         </TableBody>
