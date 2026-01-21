@@ -74,6 +74,7 @@ function CreateNewTrade() {
 
 function TradeList() {
   const { address } = useConnection();
+  const [tokenIdsInput, setTokenIdsInput] = useState('');
 
   const { data: tradeAddresses, isLoading, error } = useReadContract({
     address: contractAddress.Viewer,
@@ -92,28 +93,40 @@ function TradeList() {
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Trade Address</TableHead>
-          <TableHead>Seller</TableHead>
-          <TableHead>Buyer</TableHead>
-          <TableHead>Expiration</TableHead>
-          <TableHead>Price CT</TableHead>
-          <TableHead>Active</TableHead>
-          <TableHead>Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {(tradeAddresses as `0x${string}`[])?.map((tradeAddr) => (
-          <TradeRow key={tradeAddr} tradeAddr={tradeAddr} userAddr={address!} />
-        ))}
-      </TableBody>
-    </Table>
+    <div>
+      <div className="mb-4">
+        <Label>Token IDs to Deposit (comma separated):</Label>
+        <Input
+          type="text"
+          placeholder="e.g. 1,2,3"
+          value={tokenIdsInput}
+          onChange={(e) => setTokenIdsInput(e.target.value)}
+        />
+      </div>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Trade Address</TableHead>
+            <TableHead>Seller</TableHead>
+            <TableHead>Buyer</TableHead>
+            <TableHead>Expiration</TableHead>
+            <TableHead>Price CT</TableHead>
+            <TableHead>Active</TableHead>
+            <TableHead>Actions</TableHead>
+            <TableHead>Deposit</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {(tradeAddresses as `0x${string}`[])?.map((tradeAddr) => (
+            <TradeRow key={tradeAddr} tradeAddr={tradeAddr} userAddr={address!} tokenIdsInput={tokenIdsInput} />
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
 
-function TradeRow({ tradeAddr, userAddr }: { tradeAddr: `0x${string}`, userAddr: `0x${string}` }) {
+function TradeRow({ tradeAddr, userAddr, tokenIdsInput }: { tradeAddr: `0x${string}`, userAddr: `0x${string}`, tokenIdsInput: string }) {
   const queryClient = useQueryClient();
 
   const { data: seller } = useReadContract({
@@ -149,11 +162,12 @@ function TradeRow({ tradeAddr, userAddr }: { tradeAddr: `0x${string}`, userAddr:
   const { mutate: confirmTrade, isPending: confirmPending } = useWriteContract();
   const { mutate: cancelTrade, isPending: cancelPending } = useWriteContract();
   const { mutate: expireTrade, isPending: expirePending } = useWriteContract();
+  const { mutate: depositCP, isPending: depositPending } = useWriteContract();
 
   useEffect(() => {
-    if (confirmPending || cancelPending || expirePending) return;
+    if (confirmPending || cancelPending || expirePending || depositPending) return;
     queryClient.invalidateQueries({ queryKey: ['readContract', contractAddress.Viewer] });
-  }, [confirmPending, cancelPending, expirePending, queryClient]);
+  }, [confirmPending, cancelPending, expirePending, depositPending, queryClient]);
 
   const handleConfirm = () => {
     confirmTrade({
@@ -176,6 +190,21 @@ function TradeRow({ tradeAddr, userAddr }: { tradeAddr: `0x${string}`, userAddr:
       address: tradeAddr,
       abi: contractABI.Trade,
       functionName: 'expire',
+    });
+  };
+
+  const handleDeposit = () => {
+    const ids = tokenIdsInput.split(',').map(id => {
+      const trimmed = id.trim();
+      const num = parseInt(trimmed, 10);
+      return isNaN(num) ? null : BigInt(num);
+    }).filter(id => id !== null && id > 0n) as bigint[];
+    if (ids.length === 0) return;
+    depositCP({
+      address: tradeAddr,
+      abi: contractABI.Trade,
+      functionName: 'depositCP',
+      args: [ids],
     });
   };
 
@@ -208,6 +237,13 @@ function TradeRow({ tradeAddr, userAddr }: { tradeAddr: `0x${string}`, userAddr:
               </Button>
             )}
           </div>
+        )}
+      </TableCell>
+      <TableCell>
+        {(seller as string) === userAddr && (active as boolean) && (
+          <Button onClick={handleDeposit} disabled={depositPending}>
+            {depositPending ? 'Depositing...' : 'Deposit'}
+          </Button>
         )}
       </TableCell>
     </TableRow>
