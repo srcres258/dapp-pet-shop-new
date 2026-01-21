@@ -16,7 +16,7 @@ export const ephemeryChain = {
   blockExplorers: {
     default: {
       name: 'Testnet Ethereum Explorer',
-      url: 'https://explorer.ephemery.dev'
+      url: 'https://rpc.bordel.wtf/test'
     }
   }
 } as const satisfies Chain;
