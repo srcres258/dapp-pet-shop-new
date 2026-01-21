@@ -19,3 +19,5 @@ export const contractABI: Record<string, object[]> = {
   TradeFactory: TradeFactoryABI,
   Viewer: ViewerABI
 };
+
+export const NFT_STORAGE_API_KEY = import.meta.env.VITE_NFT_STORAGE_API_KEY as string;
