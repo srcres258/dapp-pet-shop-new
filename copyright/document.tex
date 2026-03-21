@@ -1,0 +1,316 @@
+\documentclass{mancls}
+
+\title{宠物商店 V1.0}
+\author{宠物商店 V1.0}
+
+\begin{document}
+
+\section{软件总体描述}
+
+\subsection{软件名称及版本}
+
+软件中文名称：宠物商店
+
+软件英文名称：Pet Shop DApp
+
+版本号：V1.0
+
+\subsection{软件用途及适用范围}
+
+宠物商店（Pet Shop DApp）是一个基于区块链技术的去中心化宠物交易应用，用户可以在平台上铸造（创建）自己的宠物 NFT（非同质化代币）、管理宠物资产、与其他用户进行宠物交易，并可在内置交易所中完成 ETH 与自定义代币（CT）之间的兑换。该软件面向对区块链数字资产有兴趣的个人用户，构建了一个安全、透明、可验证的宠物数字资产交易生态系统。
+
+\subsection{运行环境}
+
+\begin{itemize}
+	\item \textbf{操作系统:} Windows、macOS、Linux 等主流操作系统
+	\item \textbf{浏览器:} 支持 Web3 功能的现代浏览器（Chrome、Firefox、Edge 等）
+	\item \textbf{区块链网络:} Ephemery 测试链（Chain ID: 39438155）或本地 Anvil 测试链（Chain ID: 31337）
+	\item \textbf{前端运行环境:} Node.js 16.0 及以上版本，pnpm 包管理器
+	\item \textbf{后端运行环境:} 以太坊虚拟机（EVM）兼容的区块链节点
+	\item \textbf{其他依赖:} Web3 钱包插件（如 MetaMask）用于与区块链交互
+\end{itemize}
+
+\section{软件技术架构}
+
+\subsection{系统架构概述}
+
+宠物商店采用前后端分离的去中心化应用（DApp）架构。前端为基于 React + TypeScript + Vite 构建的 Web 应用，通过 wagmi 和 RainbowKit 与区块链上的智能合约进行交互。后端为部署在以太坊虚拟机（EVM）兼容区块链上的一组 Solidity 智能合约，承载所有核心业务逻辑和数据。
+
+\hspace{\fill}
+\begin{tikzpicture}
+	\node (browser) [startstop] {用户浏览器};
+	\node (wallet) [io, right=2.5cm of browser] {Web3 钱包\\（MetaMask 等）};
+	\node (frontend) [process, below=2cm of browser] {React Web 应用\\前端交互层};
+	\node (wagmi) [process, below=2cm of frontend] {wagmi / RainbowKit\\Web3 接口层};
+	\node (contracts) [process, below=2cm of wagmi] {Solidity 智能合约\\业务逻辑层};
+	\node (blockchain) [startstop, below=2cm of contracts] {EVM 区块链网络\\数据持久层};
+
+	\draw [arrow] (browser) -- (wallet);
+	\draw [arrow] (wallet) -- (frontend);
+	\draw [arrow] (frontend) -- (wagmi);
+	\draw [arrow] (wagmi) -- (contracts);
+	\draw [arrow] (contracts) -- (blockchain);
+\end{tikzpicture}
+\hspace{\fill}
+
+\subsection{后端技术栈}
+
+\begin{itemize}
+	\item \textbf{智能合约语言:} Solidity 0.8.24
+	\item \textbf{开发框架:} Foundry（Forge、Cast、Anvil）
+	\item \textbf{标准库:} OpenZeppelin Contracts v5（ERC-20、ERC-721、ERC-721URIStorage、ERC-721Enumerable）
+	\item \textbf{区块链网络:} Ethereum 兼容链（支持 EVM）
+\end{itemize}
+
+\textbf{智能合约模块划分:}
+
+宠物商店后端由 6 个核心智能合约组成，分为 3 个功能层次：
+
+\begin{enumerate}
+	\item \textbf{代币层（Token Layer）:}
+	      \begin{itemize}
+		      \item CustomToken.sol — ERC-20 同质化代币（CT），用于交易支付
+		      \item CustomPet.sol — ERC-721 非同质化代币（宠物 NFT），支持元数据存储
+	      \end{itemize}
+	\item \textbf{业务层（Business Layer）:}
+	      \begin{itemize}
+		      \item Exchange.sol — ETH/CT 代币双向兑换交易所
+		      \item Trade.sol — 点对点宠物交易合约
+		      \item TradeFactory.sol — 交易创建与工厂管理
+	      \end{itemize}
+	\item \textbf{查询层（Query Layer）:}
+	      \begin{itemize}
+		      \item Viewer.sol — 用户资产与交易状态查询
+	      \end{itemize}
+\end{enumerate}
+
+\subsection{前端技术栈}
+
+\begin{itemize}
+	\item \textbf{核心框架:} React 19 + TypeScript（严格模式）
+	\item \textbf{构建工具:} Vite
+	\item \textbf{包管理器:} pnpm
+	\item \textbf{Web3 交互:} wagmi v2 + RainbowKit + viem
+	\item \textbf{状态管理:} TanStack Query（React Query）
+	\item \textbf{路由:} React Router v6
+	\item \textbf{样式:} Tailwind CSS + shadcn/ui 组件库
+	\item \textbf{IPFS 上传:} Pinata SDK
+\end{itemize}
+
+\section{功能详细说明}
+
+\subsection{钱包连接功能}
+
+\textbf{功能描述:} 用户通过 Web3 钱包（如 MetaMask）连接应用，获取区块链身份后即可访问所有功能模块。
+
+\textbf{实现方式:} 前端通过 RainbowKit 提供统一的连接 UI，用户点击连接按钮后，Wagmi 负责管理钱包连接状态，连接信息（账户地址等）通过 React Context 传递给各页面组件。
+
+\textbf{相关文件:} pages/index.tsx、components/wallet/ConnectButton.tsx、lib/wagmi.tsx
+
+\subsection{宠物管理功能}
+
+\textbf{功能描述:} 登录用户可以铸造（创建）新的宠物 NFT，并可将已有的宠物 NFT 销毁。
+
+\textbf{铸造流程:} 用户填写宠物名称、描述并上传图片后，前端将图片上传至 IPFS（通过 Pinata 服务），生成图片 URI；随后创建包含名称、描述和图片 URI 的 JSON 元数据文件，上传至 IPFS 生成元数据 URI；最后调用 CustomPet 合约的 mint 函数，将元数据 URI 与用户钱包地址绑定，完成宠物 NFT 的铸造。
+
+\textbf{销毁流程:} 用户输入要销毁的宠物 Token ID，调用 CustomPet 合约的 burn 函数完成销毁。
+
+\textbf{列表查看:} 通过 Viewer 合约的 getOwnedCPs 函数查询用户拥有的所有宠物 NFT，以表格形式展示 Token ID 和 Token URI。
+
+\textbf{相关文件:} pages/pet-manage.tsx、hooks/Viewer.ts、hooks/CustomPet.ts
+
+\subsection{代币兑换功能}
+
+\textbf{功能描述:} 用户可以在内置交易所中将 ETH 兑换为 CT 代币，或将 CT 代币兑换回 ETH。
+
+\textbf{兑换规则:} 兑换汇率由 Exchange 合约中的参数 $k$ 决定（1 CT = $k$ wei ETH），由委员会负责动态调整。用户输入兑换的 CT 数量后，系统根据当前汇率计算出对应的 ETH 金额（以太坊 wei 单位）。
+
+\textbf{ETH → CT 兑换:} 用户向 Exchange 合约发送指定数量的 ETH，合约按汇率计算应铸造的 CT 数量并转入用户钱包。
+
+\textbf{CT → ETH 兑换:} 用户调用 exchangeCTToETH 函数，燃烧（销毁）指定数量的 CT，合约从其 ETH 余额中按汇率转出对应的 ETH 给用户。
+
+\textbf{相关文件:} pages/exchange.tsx
+
+\subsection{宠物交易功能}
+
+\textbf{功能描述:} 用户之间可以进行点对点的宠物 NFT 交易，卖方创建交易并存入宠物 NFT，买方支付 CT 代币完成交易。
+
+\textbf{交易创建:} 卖方指定买方地址、交易有效期（秒）和 CT 价格后，由 TradeFactory 合约部署一个新的 Trade 合约实例。
+
+\textbf{存款宠物:} 卖方调用 Trade 合约的 depositCP 函数，将一个或多个宠物 NFT（Token ID 列表）转入交易合约地址托管。
+
+\textbf{确认交易:} 买方首先需要授权 Trade 合约可以使用自己的 CT 代币（approve），然后调用 confirm 函数完成支付。Trade 合约将卖方的 CT 转给卖方，同时将托管的宠物 NFT 转给买方。
+
+\textbf{取消交易:} 在交易有效期内，卖方可随时调用 cancel 函数取消交易，合约将托管的宠物 NFT 退还给卖方。
+
+\textbf{过期处理:} 超过有效期后，任何人都可以调用 expire 函数处理过期交易，合约将托管的宠物 NFT 退还给卖方。
+
+\textbf{相关文件:} pages/trade.tsx、contracts/Trade.sol、contracts/TradeFactory.sol
+
+\subsection{用户资产与交易查询功能}
+
+\textbf{功能描述:} 登录用户可以查看自己拥有的所有宠物 NFT 列表，以及自己作为买方或卖方参与的所有交易记录。
+
+\textbf{查询方式:} 前端通过 Viewer 合约提供的一系列只读函数进行查询：
+\begin{itemize}
+	\item getOwnedCPs — 获取用户拥有的所有宠物及 URI
+	\item getUserSellingTrades — 获取用户作为卖方的所有交易
+	\item getUserBuyingTrades — 获取用户作为买方的所有交易
+	\item getUserAllTrades — 获取用户参与的所有交易（买卖双方合计）
+\end{itemize}
+
+\textbf{相关文件:} pages/viewer.tsx、contracts/Viewer.sol、hooks/Viewer.ts
+
+\section{软件数据流}
+
+\subsection{宠物铸造数据流}
+
+用户提交宠物信息 → 前端上传图片至 IPFS → 前端上传元数据至 IPFS → 调用 CustomPet.mint() 合约方法 → 区块链记录宠物 NFT 所有权
+
+\subsection{交易流程数据流}
+
+卖方创建交易（TradeFactory.createTrade）→ 卖方授权 Trade 合约使用 CT（CustomToken.approve）→ 卖方存款宠物（Trade.depositCP）→ 买方授权 Trade 合约使用 CT（CustomToken.approve）→ 买方确认交易（Trade.confirm）→ 区块链完成 CT 和宠物 NFT 的双向转移
+
+\section{软件接口说明}
+
+\subsection{主要合约接口}
+
+\subsubsection{CustomPet 合约}
+\begin{itemize}
+	\item \textbf{mint(address to, string memory uri)} — 铸造新宠物 NFT
+	\item \textbf{burn(uint256 tokenId)} — 销毁宠物 NFT
+	\item \textbf{balanceOf(address owner)} — 查询用户宠物数量
+	\item \textbf{tokenOfOwnerByIndex(address owner, uint256 index)} — 按索引获取用户宠物 ID
+	\item \textbf{tokenURI(uint256 tokenId)} — 获取宠物元数据 URI
+\end{itemize}
+
+\subsubsection{CustomToken 合约}
+\begin{itemize}
+	\item \textbf{mint(address to, uint256 amount)} — 铸造 CT 代币
+	\item \textbf{burn(address from, uint256 amount)} — 销毁 CT 代币
+	\item \textbf{balanceOf(address account)} — 查询代币余额
+	\item \textbf{transfer(address to, uint256 amount)} — 转账
+	\item \textbf{approve(address spender, uint256 amount)} — 授权
+\end{itemize}
+
+\subsubsection{Exchange 合约}
+\begin{itemize}
+	\item \textbf{exchangeETHToCT()} — 用 ETH 兑换 CT（payable）
+	\item \textbf{exchangeCTToETH(uint256 ctWeiAmount)} — 用 CT 兑换 ETH
+	\item \textbf{adjustK(uint256 newK)} — 调整汇率
+	\item \textbf{k()} — 查询当前汇率
+\end{itemize}
+
+\subsubsection{Trade 合约}
+\begin{itemize}
+	\item \textbf{depositCP(uint256[] memory tokenIds)} — 卖方存入宠物
+	\item \textbf{confirm()} — 买方确认交易并支付
+	\item \textbf{cancel()} — 卖方取消交易
+	\item \textbf{expire()} — 处理过期交易
+\end{itemize}
+
+\section{用户界面说明}
+
+宠物商店 Web 应用包含以下页面：
+
+\begin{enumerate}
+	\item \textbf{首页（Wallet Page）:} 应用入口页面，显示钱包连接按钮，提示用户连接钱包后使用。路由：/
+	\item \textbf{用户资产页（Viewer Page）:} 展示当前用户拥有的所有宠物 NFT 列表（Token ID、Token URI）以及参与的所有交易记录（交易地址、角色）。路由：/viewer
+	\item \textbf{代币兑换页（Exchange Page）:} 提供 ETH/CT 双向兑换功能，展示用户 ETH/CT 余额和当前汇率。路由：/exchange
+	\item \textbf{宠物交易页（Trade Page）:} 支持创建新交易、存款宠物、确认/取消/过期处理等交易全生命周期管理，以表格形式展示所有相关交易。路由：/trade
+	\item \textbf{宠物管理页（Pet Manage Page）:} 提供宠物 NFT 的铸造（Mint）和销毁（Burn）功能，并展示当前钱包的宠物列表。路由：/pet-manage
+\end{enumerate}
+
+所有页面共享统一的主布局（MainLayout），包含顶部导航栏（宠物商店名称及五个页面导航链接）和底部版权信息。
+
+\section{关键算法及业务流程}
+
+\subsection{代币兑换算法}
+
+Exchange 合约的兑换算法如下：
+
+\begin{itemize}
+	\item \textbf{ETH → CT:} $ctAmount = ethWeiAmount \times 10^{18} \div k$
+	\item \textbf{CT → ETH:} $ethWeiAmount = ctWeiAmount \times k \div 10^{18}$
+\end{itemize}
+
+其中 $k$ 为汇率参数（1 CT 对应的 ETH wei 数量），初始值由合约部署时设定，可通过 adjustK 函数动态调整。
+
+\subsection{宠物交易业务流程}
+
+宠物交易业务流程如图所示：
+
+\hspace{\fill}
+\begin{tikzpicture}[scale=0.85]
+	% Row 0
+	\node (start) [startstop] at (0, 0) {开始};
+	% Row 1
+	\node (create) [process] at (0, -1.8) {卖方创建交易\\TradeFactory.createTrade};
+	% Row 2
+	\node (deposit) [decision] at (0, -3.6) {卖方是否\\存入宠物?};
+	\node (cancel) [decision] at (-5, -3.6) {卖方是否\\取消交易?};
+	\node (cancelY) [process] at (-5, -5.4) {调用\\Trade.cancel};
+	\node (depositY) [process] at (5, -3.6) {调用\\Trade.depositCP};
+	% Row 3
+	\node (active) [process] at (0, -5.2) {交易状态:\\active=true};
+	% Row 4
+	\node (confirm) [decision] at (0, -7.0) {买方是否\\确认交易?};
+	\node (confirmY) [process] at (5, -7.0) {调用\\Trade.confirm};
+	% Row 5
+	\node (expire) [decision] at (0, -8.8) {交易是否\\已过期?};
+	\node (expireY) [process] at (-5, -8.8) {调用\\Trade.expire};
+	% Row 6
+	\node (success) [startstop] at (5, -9.8) {交易完成\\CT 与宠物 NFT 互换};
+	\node (fail) [startstop] at (-5, -10.6) {交易终止\\宠物 NFT 退回卖方};
+
+	% Arrows
+	\draw [arrow] (start) -- (create);
+	\draw [arrow] (create) -- (deposit);
+	\draw [arrow] (deposit) -- node[anchor=south] {是} (depositY);
+	\draw [arrow] (depositY) |- (active);
+	\draw [arrow] (deposit) -- node[anchor=south] {否} (active);
+	\draw [arrow] (active) -- (confirm);
+	\draw [arrow] (confirm) -- node[anchor=south] {是} (confirmY);
+	\draw [arrow] (confirmY) |- (success);
+	\draw [arrow] (confirm) -- node[anchor=east] {否} (expire);
+	\draw [arrow] (expire) -- node[anchor=south] {是} (expireY);
+	\draw [arrow] (expireY) |- (fail);
+	\draw [arrow] (deposit) -- node[anchor=south] {取消} (cancel);
+	\draw [arrow] (cancel) -- node[anchor=south] {是} (cancelY);
+	\draw [arrow] (cancelY) |- (fail);
+\end{tikzpicture}
+\hspace{\fill}
+
+
+\section{数据存储说明}
+
+宠物商店的数据存储分为链上和链下两部分：
+
+\begin{itemize}
+	\item \textbf{链上存储:} 所有核心业务数据（宠物 NFT 的所有权、代币余额、交易状态、汇率参数等）存储在以太坊虚拟机区块链上，由各智能合约的状态变量管理，数据一经确认不可篡改。
+	\item \textbf{链下存储:} 宠物图片和元数据文件存储在 IPFS（InterPlanetary File System）分布式存储网络中，前端仅存储指向 IPFS 资源的 URI 链接。这种设计既保证了数据去中心化，又降低了链上存储成本。
+\end{itemize}
+
+\section{安全措施说明}
+
+宠物商店在设计与实现中采取了以下安全措施：
+
+\begin{enumerate}
+	\item \textbf{权限控制:} 关键操作均通过 require 语句进行访问控制检查，如 depositCP 仅允许卖方调用，confirm 仅允许买方调用，cancel 和 expire 均有严格的角色和时间条件限制。
+	\item \textbf{余额验证:} Exchange 合约在 CT→ETH 兑换前检查合约 ETH 余额是否充足，防止因流动性不足导致转账失败。
+	\item \textbf{低级别调用检查:} 对 transferFrom 等低级别调用进行成功与否的检查（bool success），确保操作实际完成后才继续执行。
+	\item \textbf{整数运算:} 兑换计算中使用 $10^{18}$（1 ether）作为精度因子，防止小数精度丢失问题。
+	\item \textbf{前端输入验证:} 前端组件对用户输入进行必要性检查（如宠物名称、描述、图片文件的存在性），在提交按钮上设置 disabled 状态防止空值提交。
+\end{enumerate}
+
+\section{使用限制及注意事项}
+
+\begin{enumerate}
+	\item 本软件目前部署在 Ephemery 测试链上，测试网上的资产无实际价值，仅供功能验证使用。
+	\item 用户需要自行准备 Web3 钱包（如 MetaMask）并确保钱包中有足够的测试 ETH 用于操作。
+	\item 交易有效期设置不宜过短，应确保买方有充足时间检查交易并完成支付。
+	\item 宠物图片和元数据通过 Pinata 服务上传至公共 IPFS 网络，上传内容将被公开访问，请勿上传敏感信息。
+	\item 智能合约一旦部署便无法修改，业务逻辑漏洞可能导致不可挽回的资产损失，请勿在生产环境未经审计的情况下使用。
+\end{enumerate}
+
+\end{document}
