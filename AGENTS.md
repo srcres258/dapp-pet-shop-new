@@ -4,173 +4,144 @@ Guidance for autonomous coding agents working in this repository.
 
 ## 1) Repository Topology
 
-- Monorepo with two active surfaces:
+- Monorepo with two surfaces:
   - Solidity smart-contract project (Foundry) at repo root.
   - React + TypeScript frontend (Vite) in `frontend/`.
-- Solidity source: `src/`
-- Solidity scripts: `script/`
-- Frontend app source: `frontend/src/`
+- Solidity source: `src/` (6 contracts), deploy script: `script/Deploy.s.sol`.
+- Frontend app source: `frontend/src/`.
+- `copyright/` — non-coding assets (LaTeX/Typst). Do not edit.
 
-## 2) Rule Files (Cursor / Copilot)
+## 2) Rule Files
 
-Check these before making edits because they can override general guidance.
-
-- `.cursorrules`: **not found**
-- `.cursor/rules/`: **not found**
-- `.github/copilot-instructions.md`: **not found**
+- `.cursorrules`: not found
+- `.cursor/rules/`: not found
+- `.github/copilot-instructions.md`: not found
 
 If any appear later, treat them as higher-priority local instructions.
 
-## 3) Tooling and Package Managers
+## 3) Tooling
 
-- Solidity: Foundry (`forge`, `cast`, `anvil`)
-- Frontend: Vite + React 19 + TypeScript 5
-- Frontend package manager: `pnpm` (lockfile at `frontend/pnpm-lock.yaml`)
-- Frontend linting: ESLint flat config (`frontend/eslint.config.js`)
+- Solidity: Foundry (`forge`, `cast`, `anvil`). Submodules: `forge-std`, `openzeppelin-contracts`, `solidity-stringutils`.
+- Frontend: Vite + React 19 + TypeScript ~5.9, package manager `pnpm`.
+- Frontend styling: TailwindCSS v4 (via `@tailwindcss/vite` plugin, NO PostCSS config), shadcn/ui (New York style, `components.json` at `frontend/`).
+- Frontend web3: wagmi v3 + viem ~2.44 + RainbowKit v2 + React Query v5 + MetaMask SDK.
+- Frontend IPFS: Pinata SDK (env var `VITE_PINATA_JWT` required).
 
-## 4) Working Directory Conventions
+## 4) Env Vars Required
 
-Run commands from the correct directory:
+- **Solidity deploy**: `.env` with `PRIVATE_KEY=<hex>` (used by `script/Deploy.s.sol` via `vm.envUint`).
+- **Frontend**: `VITE_WALLETCONNECT_PROJECT_ID` (RainbowKit), `VITE_PINATA_JWT` (Pinata/IPFS).
 
-- Solidity / Foundry commands:
-  - `/home/srcres/Coding/Learn/dapp-pet-shop-new`
-- Frontend commands:
-  - `/home/srcres/Coding/Learn/dapp-pet-shop-new/frontend`
+## 5) Working Directory Conventions
 
-## 5) Canonical Build / Lint / Test Commands
+- Solidity/Foundry commands → repo root `/home/srcres/Coding/Learn/dapp-pet-shop-new`
+- Frontend commands → `frontend/`
 
-### Solidity (Foundry, repo root)
+## 6) Canonical Commands
 
-- Install dependencies: `forge install`
-- Build: `forge build`
-- Format: `forge fmt`
-- Format check (CI-aligned): `forge fmt --check`
-- Test all: `forge test`
-- Test all (CI-aligned verbosity): `forge test -vvv`
-- Build with contract sizes (CI): `forge build --sizes`
+### Solidity (Foundry)
 
-### Run a single Solidity test (important)
+| Command | Directory |
+|---|---|
+| `forge build` | repo root |
+| `forge build --sizes` | repo root |
+| `forge test -vvv` | repo root |
+| `forge fmt` | repo root |
+| `forge fmt --check` | repo root |
+| `forge test --match-test "testXxx" -vvv` | repo root |
+| `forge test --match-contract "ContractTest" -vvv` | repo root |
+| `forge test --match-path "test/File.t.sol" -vvv` | repo root |
 
-All of these are canonical Foundry patterns:
+Short aliases: `--mt`, `--mc`, `--mp`. Exclusion: `--no-match-test`, `--no-match-contract`, `--no-match-path`.
 
-- By test function regex:
-  - `forge test --match-test "testFunctionName" -vvv`
-- By contract regex:
-  - `forge test --match-contract "ContractTestName" -vvv`
-- By path glob:
-  - `forge test --match-path "test/MyFeature.t.sol" -vvv`
-- File shortcut (equivalent to match-path):
-  - `forge test test/MyFeature.t.sol -vvv`
+**⚠️ CRITICAL: There are ZERO Solidity test files in this project.** `forge test` returns "No tests found". If you add new Solidity code, you MUST also write tests. CI runs `forge test -vvv` which would silently pass with no tests.
 
-Additional useful filters:
+### Frontend (pnpm)
 
-- Short aliases: `--mt`, `--mc`, `--mp`
-- Exclusion filters: `--no-match-test`, `--no-match-contract`, `--no-match-path`
+| Command | Directory |
+|---|---|
+| `pnpm install` | `frontend/` |
+| `pnpm run dev` | `frontend/` |
+| `pnpm run build` | `frontend/` |
+| `pnpm run lint` | `frontend/` |
+| `pnpm run preview` | `frontend/` |
 
-Repo caveat: there are currently no top-level `test/*.t.sol` files. Add tests before relying on single-test filters.
+- `pnpm run build` expands to `tsc -b && vite build` (type-check first, then bundle).
+- No frontend test runner is configured. Do not invent test commands.
 
-### Frontend (Vite + TypeScript, `frontend/`)
+## 7) CI-Backed Commands (from `.github/workflows/test.yml`)
 
-- Install dependencies: `pnpm install`
-- Dev server: `pnpm run dev`
-- Build (type-check + bundle): `pnpm run build`
-  - expands to: `tsc -b && vite build`
-- Lint: `pnpm run lint`
-  - expands to: `eslint .`
-- Preview: `pnpm run preview`
+CI sets `FOUNDRY_PROFILE=ci` but no `[profile.ci]` exists in `foundry.toml` → falls back to `default`.
 
-### Frontend single-test status
+```
+forge fmt --check
+forge build --sizes
+forge test -vvv
+```
 
-- No frontend test runner is configured in `frontend/package.json`.
-- There is no `test` script and no Vitest/Jest config.
-- Do **not** invent frontend test commands; first add a test toolchain.
+Ensure these pass locally before finishing Solidity work.
 
-## 6) CI-Backed Commands (authoritative)
+## 8) Local Dev Caveats
 
-From `.github/workflows/test.yml`:
+### Chain switching
+`frontend/src/lib/chains.ts` defines TWO chains: `ephemeryChain` (testnet, id=39438155) and `anvilChain` (local, id=31337).  
+`frontend/src/lib/wagmi.tsx` only registers `ephemeryChain`. To develop against local Anvil, you MUST manually edit `wagmi.tsx` to add `anvilChain` to the `chains` array.
 
-1. `forge fmt --check`
-2. `forge build --sizes`
-3. `forge test -vvv`
+### ABI sync workflow
+Deployed contract ABIs are stored in `frontend/src/abis/*.json` and imported in `frontend/src/constants.ts`. After deploying new contracts, copy fresh ABIs from `out/` to `frontend/src/abis/` and update `constants.ts` with new addresses.
 
-If you modify Solidity, ensure these pass locally before finishing.
+### Foundry CI profile
+`foundry.toml` has no `[profile.ci]` section. CI runs with `FOUNDRY_PROFILE=ci` which defaults to `[profile.default]`. No issue currently, but if you add CI-specific settings, create the profile.
 
-## 7) Solidity Style and Quality Guidelines
+## 9) Solidity Style
 
-Derived from `src/*.sol`, `script/Deploy.s.sol`, and `foundry.toml`.
+Derived from `foundry.toml` and existing contracts in `src/`.
 
-- Include SPDX and pragma at file top.
-  - Example: `// SPDX-License-Identifier: BSD-3-Clause`
-  - Example: `pragma solidity ^0.8.24;`
-- Prefer named imports with braces.
-  - Example: `import {Trade} from "./Trade.sol";`
-- Naming conventions:
-  - Contracts/events: `PascalCase`
-  - Functions/variables: `camelCase`
-  - Internal helpers: prefix `_`
-- Always set explicit visibility.
-- Use NatSpec for contracts and non-trivial functions.
-- Validate early using `require(...)` with clear messages.
-- Keep revert strings explicit and actionable.
-- Prefer `uint256` over `uint` for new code.
+- SPDX + pragma at file top: `// SPDX-License-Identifier: BSD-3-Clause` / `pragma solidity ^0.8.24;`
+- Named imports with braces: `import {Trade} from "./Trade.sol";`
+- Naming: contracts/events `PascalCase`, functions/variables `camelCase`, internal helpers prefix `_`.
+- Always explicit visibility.
+- Use NatSpec (`@title`, `@author`, `@notice`, `@dev`) for contracts and non-trivial functions.
+- Prefer `uint256` for storage/parameters; `uint` used in existing code for local loop counters (Viewer.sol).
+- `require(...)` early with clear revert messages.
 - Emit events for externally-triggered state changes.
-- Extract repeated logic into internal helpers.
-- Run `forge fmt` after Solidity edits.
+- Check low-level call success: `(bool success,) = target.call{...}(""); require(success, "...");`
+- Run `forge fmt` after every edit.
+- Foundry lints excluded: `mixed-case-function`, `mixed-case-variable`. Still use camelCase unless an interface forces otherwise.
 
-Foundry lint nuance from `foundry.toml`:
+## 10) Frontend TypeScript / React Style
 
-- Excluded lints: `mixed-case-function`, `mixed-case-variable`
-- Even so, prefer camelCase unless an interface requires otherwise.
+- Strict mode (`tsconfig.app.json`: `strict: true`, `noUnusedLocals`, `noUnusedParameters`).
+- Avoid `any`. Use explicit types and interfaces.
+- Alias imports from `@/` → `frontend/src/` (configured in both `tsconfig.json` and `vite.config.ts`).
+- Prefer `type` imports for type-only symbols.
+- Function components + hooks. Never call hooks conditionally.
+- Side effects in hooks/handlers, not render paths.
+- UI primitives in `frontend/src/components/ui/` (shadcn): `button.tsx`, `checkbox.tsx`, `input.tsx`, `label.tsx`, `table.tsx`. Reuse these.
+- `cn()` utility from `@/lib/utils` for className merging (clsx + tailwind-merge).
+- Never silently swallow errors. Surface failures to UI state.
+- Do not mass-reformat unrelated files.
 
-## 8) Frontend TypeScript / React Style Guidelines
-
-Derived from `frontend/eslint.config.js`, `frontend/tsconfig*.json`, and existing app code.
-
-- TypeScript is strict (`strict: true`).
-- Avoid `any`; use explicit types/interfaces.
-- Keep imports clean and grouped.
-- Prefer alias imports from `@/` for app modules.
-- Use function components + hooks.
-- Never call hooks conditionally.
-- Keep side effects in hooks/handlers, not render paths.
-- Prefer `type` imports for type-only symbols where practical.
-- Avoid unused locals/params (TS flags enforce this).
-- Reuse existing UI primitives from `frontend/src/components/ui/`.
-- Preserve local file formatting style; avoid unrelated mass reformatting.
-
-## 9) Error Handling Conventions
+## 11) Error Handling
 
 ### Solidity
+- Authorization/state checks first via `require`.
+- Revert reasons must be precise and user-actionable.
 
-- Put authorization/state checks first (`require`).
-- Make revert reasons precise and user-actionable.
-- Check low-level call success:
-  - `(bool success,) = target.call(data);`
-  - `require(success, "...");`
-
-### Frontend / TypeScript
-
-- Never silently swallow errors.
-- Surface failures to UI state when practical.
+### Frontend
+- Never empty catch blocks. Always handle or surface errors.
 - Prefer typed error flows over broad untyped catches.
 
-## 10) Directories to Treat as Generated / Vendored
+## 12) Vendored / Generated Directories (DO NOT EDIT)
 
-Avoid editing these unless explicitly requested:
+`lib/**`, `out/**`, `cache/**`, `broadcast/**`, `frontend/dist/**`, `frontend/node_modules/**`
 
-- `lib/**`
-- `out/**`
-- `cache/**`
-- `broadcast/**`
-- `frontend/dist/**`
-- `frontend/node_modules/**`
-
-## 11) Recommended Agent Execution Flow
+## 13) Agent Execution Summary
 
 1. Determine impacted area (Solidity, frontend, or both).
-2. Read nearby files and follow established local patterns.
+2. Read nearby files; follow existing conventions.
 3. Make minimal, surgical edits.
-4. Run relevant validation:
-   - Solidity: `forge fmt --check`, `forge build --sizes`, `forge test -vvv`
-   - Frontend: `pnpm run lint`, `pnpm run build`
-5. If tests are missing for touched code, state that explicitly in your summary.
+4. Run `forge fmt` after every `.sol` edit.
+5. Solidity validation: `forge fmt --check && forge build --sizes && forge test -vvv`
+6. Frontend validation: `pnpm run lint && pnpm run build` (from `frontend/`)
+7. If adding new Solidity code without tests, state that clearly in your summary.
